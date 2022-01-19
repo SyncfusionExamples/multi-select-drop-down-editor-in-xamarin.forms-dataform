@@ -9,93 +9,86 @@ using System.Text;
 
 namespace DataFormDropDown
 {
-public class MultiSelectDropDownEditor : DataFormDropDownEditor
-{
-    private ContactInfo ContactInfo;
-    SfDataForm sfDataForm;
-    public MultiSelectDropDownEditor(SfDataForm dataForm) : base(dataForm)
+    public class MultiSelectDropDownEditor : DataFormDropDownEditor
     {
-        this.sfDataForm = dataForm;
-        this.ContactInfo = this.DataForm.DataObject as ContactInfo;
-    }
-    protected override void OnInitializeView(DataFormItem dataFormItem, SfComboBox view)
-    {
-        base.OnInitializeView(dataFormItem, view);
-        view.MultiSelectMode = MultiSelectMode.Token;
-        view.TokensWrapMode = TokensWrapMode.Wrap;
-        view.SelectionChanged += View_SelectionChanged;
-    }
-
-    protected override void OnCommitValue(SfComboBox view)
-    {
-        if (view.MultiSelectMode == MultiSelectMode.None)
+        private ContactInfo contactInfo;
+        public MultiSelectDropDownEditor(SfDataForm dataForm) : base(dataForm)
         {
-            // Use existing method for single selection. 
-            base.OnCommitValue(view);
+            this.contactInfo = this.DataForm.DataObject as ContactInfo;
         }
-        else
+        protected override void OnInitializeView(DataFormItem dataFormItem, SfComboBox view)
         {
-            // Multi Selection needs to be updated with all selected items. 
-            if (view != null && view.SelectedItem != null && view.SelectedItem is IList)
+            base.OnInitializeView(dataFormItem, view);
+            view.MultiSelectMode = MultiSelectMode.Token;
+            view.TokensWrapMode = TokensWrapMode.Wrap;
+        }
+
+        protected override void OnCommitValue(SfComboBox view)
+        {
+            if (view.MultiSelectMode == MultiSelectMode.None)
             {
-                string country = string.Empty;
-                foreach (Address address in (IList)view.SelectedItem)
-                {
-                    if (country.Contains(address.City))
-                    {
-                        continue;
-                    }
-
-                    country = string.IsNullOrEmpty(country) ? address.City : country + "," + address.City;
-                }
-
-                this.ContactInfo.Country = country;
-            }
-        }
-    }
-
-    protected override void OnUpdateValue(DataFormItem dataFormItem, SfComboBox view)
-    {
-        if (view.MultiSelectMode == MultiSelectMode.None)
-        {
-            base.OnUpdateValue(dataFormItem, view);
-        }
-        else
-        {
-            var list = (dataFormItem as DataFormDropDownItem).ItemsSource;
-            if (list != null)
-            {
-                view.DataSource = list.OfType<object>().ToList();
+                // Use existing method for single selection. 
+                base.OnCommitValue(view);
             }
             else
             {
-                view.DataSource = null;
+                // Multi Selection needs to be updated with all selected items. 
+                if (view != null && view.SelectedItem != null && view.SelectedItem is IList)
+                {
+                    string country = string.Empty;
+                    foreach (Address address in (IList)view.SelectedItem)
+                    {
+                        if (country.Contains(address.City))
+                        {
+                            continue;
+                        }
+
+                        country = string.IsNullOrEmpty(country) ? address.City : country + "," + address.City;
+                    }
+
+                    this.contactInfo.Country = country;
+                }
             }
         }
-    }
 
-    protected override bool OnValidateValue(SfComboBox view)
-    {
-        if (view.MultiSelectMode == MultiSelectMode.None)
+        protected override void OnUpdateValue(DataFormItem dataFormItem, SfComboBox view)
         {
-            return base.OnValidateValue(view);
-        }
-        else
-        {
-            this.OnCommitValue(view);
-
-            // Here country is multi selection property. 
-            if (string.IsNullOrEmpty(this.ContactInfo.Country))
+            if (view.MultiSelectMode == MultiSelectMode.None)
             {
-                return false;
+                base.OnUpdateValue(dataFormItem, view);
             }
+            else
+            {
+                var list = (dataFormItem as DataFormDropDownItem).ItemsSource;
+                if (list != null)
+                {
+                    view.DataSource = list.OfType<object>().ToList();
+                }
+                else
+                {
+                    view.DataSource = null;
+                }
+            }
+        }
 
-            return true;
+        protected override bool OnValidateValue(SfComboBox view)
+        {
+            if (view.MultiSelectMode == MultiSelectMode.None)
+            {
+                return base.OnValidateValue(view);
+            }
+            else
+            {
+                this.OnCommitValue(view);
+
+                // Here country is multi selection property. 
+                if (string.IsNullOrEmpty(this.contactInfo.Country))
+                {
+                    return false;
+                }
+
+                return true;
+            }
         }
     }
-    private void View_SelectionChanged(object sender, Syncfusion.XForms.ComboBox.SelectionChangedEventArgs e)
-    {
-
-    }
-}
 }
